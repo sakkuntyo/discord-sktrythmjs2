@@ -59,10 +59,11 @@ client.on('interactionCreate', async interaction => {
     var url = commandInteraction.options.getString("url") ?? "not found";
 
     const queue = player.nodes.create(commandInteraction.guild!, {
-        metadata: {
-          channel: interaction.channel,
-        },
-      });
+      volume: 10,
+      metadata: {
+        channel: interaction.channel,
+      },
+    });
 
     const track = await player
     .search(url, {
