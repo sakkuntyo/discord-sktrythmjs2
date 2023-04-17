@@ -1,0 +1,37 @@
+{
+  "name": "rythm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "ts-node src/main.ts",
+    "start": "node build/main.js",
+    "compile": "tsc -p .",
+    "compile-start": "npm run compile && npm run start"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "eslint": "^8.38.0",
+    "eslint-config-standard-with-typescript": "^34.0.1",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@discord-player/extractor": "^4.1.2",
+    "@discordjs/opus": "^0.9.0",
+    "@distube/ytdl-core": "^4.11.8",
+    "discord-player": "^6.1.1",
+    "discord.js": "^14.9.0",
+    "dotenv": "^16.0.3",
+    "ffmpeg-static": "^5.1.0",
+    "opusscript": "^0.0.8",
+    "play-dl": "^1.9.6",
+    "ytdl-core": "^4.11.4"
+  }
+}
