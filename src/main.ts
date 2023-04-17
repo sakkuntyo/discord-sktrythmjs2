@@ -11,6 +11,7 @@ const commands = [
       .addStringOption(option =>
         option.setName('url')
         .setDescription('youtube url')
+        .setRequired(true)
       )
 ].map(command => command.toJSON());
   
