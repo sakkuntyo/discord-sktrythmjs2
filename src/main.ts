@@ -67,7 +67,7 @@ client.on('interactionCreate', async interaction => {
     const track = await player
     .search(url, {
       requestedBy: interaction.user,
-      searchEngine: QueryType.YOUTUBE_VIDEO,
+      searchEngine: QueryType.AUTO,
     })
     .then((x) => x.tracks[0]);
 
