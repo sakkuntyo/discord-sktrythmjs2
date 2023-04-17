@@ -70,7 +70,7 @@ client.on('interactionCreate', async interaction => {
       requestedBy: interaction.user,
       searchEngine: QueryType.AUTO,
     })
-    .then((x) => x.tracks[0]);
+    .then((x) => x.tracks);
 
     queue.addTrack(track);
 
