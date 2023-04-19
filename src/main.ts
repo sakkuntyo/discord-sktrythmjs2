@@ -1,4 +1,4 @@
-import { REST, Routes, GatewayIntentBits, Client, Partials, Message, SlashCommandBuilder, AutocompleteInteraction, CommandInteraction } from 'discord.js';
+import { REST, Routes, GatewayIntentBits, Client, Partials, SlashCommandBuilder, AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import dotenv from 'dotenv';
 import { GuildQueue, Player, QueryType, QueueRepeatMode} from 'discord-player';
 
@@ -40,7 +40,6 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildBans,
     GatewayIntentBits.GuildEmojisAndStickers,
     GatewayIntentBits.GuildIntegrations,
     GatewayIntentBits.GuildWebhooks,
