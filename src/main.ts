@@ -63,6 +63,7 @@ const player = new Player(client);
 client.on('interactionCreate', async interaction => {
     var commandInteraction = interaction as AutocompleteInteraction;
     var url = commandInteraction.options.getString("url") ?? "not found";
+    (interaction as CommandInteraction).deferReply();
 
     const queue:GuildQueue = player.nodes.create(commandInteraction.guild!, {
       volume: 10,
@@ -89,6 +90,9 @@ client.on('interactionCreate', async interaction => {
               console.log(e)
           }
           await queue.node.play();
+          setInterval(() => {
+            (interaction as CommandInteraction).editReply(queue.node.createProgressBar() ?? "createProgressBar failed");
+          }, 1000);
         }
         break;
       case "next":
