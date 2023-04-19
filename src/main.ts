@@ -77,7 +77,7 @@ client.on('interactionCreate', async interaction => {
     });
 
     switch (autocompleteInteraction.commandName){
-      case "rythm":
+      case "play":
         const track = await player
         .search(url, {
           requestedBy: interaction.user,
