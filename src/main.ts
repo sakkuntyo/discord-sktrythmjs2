@@ -9,7 +9,15 @@ import {
   CommandInteraction
 } from 'discord.js';
 import dotenv from 'dotenv';
-import { GuildQueue, Player, QueryType, QueueRepeatMode } from 'discord-player';
+import {
+  GuildQueue,
+  Player,
+  QueryType,
+  QueueRepeatMode,
+  Track
+} from 'discord-player';
+
+import { Queue } from '@discord-player/utils';
 
 dotenv.config();
 
@@ -30,7 +38,9 @@ const commands = [
   new SlashCommandBuilder()
     .setName('repeat')
     .setDescription('change repeatMode'),
-  new SlashCommandBuilder().setName('list').setDescription('show status')
+  new SlashCommandBuilder().setName('list').setDescription('show list'),
+  new SlashCommandBuilder().setName('shuffle').setDescription('shuffle list'),
+  new SlashCommandBuilder().setName('history').setDescription('show history')
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
@@ -161,18 +171,27 @@ client.on('interactionCreate', async interaction => {
       }
       break;
     case 'list':
-      let titles = queue.tracks
-        .map((track, index) => {
-          let title = track.title.trim();
-          return (
-            (index + 1).toString().padStart(2, ' ') +
-            ' : ' +
-            title.substring(0, 18)
-          );
-        })
-        .join('\n');
+      let titles = getTrackNames(queue.tracks).join('\n');
       commandInteraction.editReply('```' + titles + '```');
+      break;
+    case 'shuffle':
+      queue.tracks.shuffle();
+      commandInteraction.editReply('シャッフルしました');
+      break;
+    case 'history':
+      let history = getTrackNames(queue.history.tracks).join('\n');
+      commandInteraction.editReply('再生履歴' + '\n' + '```' + history + '```');
+      break;
   }
 });
 
 client.login(process.env.TOKEN);
+
+function getTrackNames(tracks: Queue<Track>): string[] {
+  return tracks.map((track, index) => {
+    let title = track.title.trim();
+    return (
+      (index + 1).toString().padStart(2, ' ') + ' : ' + title.substring(0, 18)
+    );
+  });
+}
