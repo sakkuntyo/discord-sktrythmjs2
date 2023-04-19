@@ -22,6 +22,9 @@ const commands = [
     new SlashCommandBuilder()
       .setName('repeat')
       .setDescription('change repeatMode'),
+    new SlashCommandBuilder()
+      .setName('status')
+      .setDescription('show status'),
 ].map(command => command.toJSON());
   
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
@@ -133,6 +136,16 @@ client.on('interactionCreate', async interaction => {
           queue.node.queue.setRepeatMode(QueueRepeatMode.OFF);
         }
         break;
+      case "status":
+        let titles = queue.tracks.map((track, index) => {
+          let title = track.title.trim();
+          return (index + 1).toString().padStart(2, ' ') + ' : ' + title.substring(0, 18)
+        }).join('\n')
+        commandInteraction.editReply(
+          '```' +
+          titles +
+          '```' 
+        );
     }
 })
 
