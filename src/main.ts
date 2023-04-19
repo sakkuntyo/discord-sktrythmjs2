@@ -66,6 +66,7 @@ client.on('interactionCreate', async interaction => {
     var autocompleteInteraction = interaction as AutocompleteInteraction;
     var commandInteraction = interaction as CommandInteraction;
     var url = autocompleteInteraction.options.getString("url") ?? "not found";
+    if(url.match(/https:\/\//)) url = `"${url}"`
     commandInteraction.deferReply();
 
     const queue:GuildQueue = player.nodes.create(autocompleteInteraction.guild!, {
