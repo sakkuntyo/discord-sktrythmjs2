@@ -97,11 +97,18 @@ client.on('interactionCreate', async interaction => {
               setTimeout(()=>{
                 if (!queue.isPlaying()){
                   clearInterval(interval);
-                  return;
+                  setTimeout(()=>{
+                    commandInteraction.editReply("finished")
+                    return;
+                  },2000);
                 }
               },2000);
             }
-            commandInteraction.editReply(queue.node.createProgressBar() ?? "finished");
+            commandInteraction.editReply(queue.currentTrack?.author + "\n"
+              + queue.currentTrack?.title + "\n"
+              + "<" + queue.currentTrack?.url + ">" + "\n"
+              + queue.node.createProgressBar() ?? "finished"
+            );
           }, 1000);
         }
         break;
