@@ -125,8 +125,7 @@ client.on('interactionCreate', async interaction => {
         queue.connection?.disconnect();
         break;
       case "repeat":
-        //commandInteraction.deleteReply();
-        console.log(queue.node.queue.repeatMode);
+        commandInteraction.deleteReply();
         if(queue.node.queue.repeatMode == QueueRepeatMode.OFF){
           queue.node.queue.setRepeatMode(QueueRepeatMode.QUEUE);
         } else {
