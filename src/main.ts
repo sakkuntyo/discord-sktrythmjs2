@@ -16,6 +16,9 @@ const commands = [
     new SlashCommandBuilder()
       .setName('next')
       .setDescription('play next track'),
+    new SlashCommandBuilder()
+      .setName('disconnect')
+      .setDescription('disconnect this voice channel'),
 ].map(command => command.toJSON());
   
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
@@ -90,6 +93,9 @@ client.on('interactionCreate', async interaction => {
         break;
       case "next":
         queue.node.skip();
+        break;
+      case "disconnect":
+        queue.connection?.disconnect();
         break;
     }
 })
