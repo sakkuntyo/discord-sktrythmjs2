@@ -61,18 +61,19 @@ const client = new Client({
 const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
-    var commandInteraction = interaction as AutocompleteInteraction;
-    var url = commandInteraction.options.getString("url") ?? "not found";
-    (interaction as CommandInteraction).deferReply();
+    var autocompleteInteraction = interaction as AutocompleteInteraction;
+    var commandInteraction = interaction as CommandInteraction;
+    var url = autocompleteInteraction.options.getString("url") ?? "not found";
+    commandInteraction.deferReply();
 
-    const queue:GuildQueue = player.nodes.create(commandInteraction.guild!, {
+    const queue:GuildQueue = player.nodes.create(autocompleteInteraction.guild!, {
       volume: 10,
       metadata: {
         channel: interaction.channel,
       },
     });
 
-    switch (commandInteraction.commandName){
+    switch (autocompleteInteraction.commandName){
       case "rythm":
         const track = await player
         .search(url, {
@@ -84,21 +85,32 @@ client.on('interactionCreate', async interaction => {
         queue.addTrack(track);
         if (!queue.isPlaying()) {
           try {
-              await queue.connect(commandInteraction.channelId);
+              await queue.connect(autocompleteInteraction.channelId);
           } catch (e){
               console.log("ボイスチャンネルに参加できませんでした")
               console.log(e)
           }
           await queue.node.play();
-          setInterval(() => {
-            (interaction as CommandInteraction).editReply(queue.node.createProgressBar() ?? "createProgressBar failed");
+
+          const interval = setInterval(() => {
+            if (!queue.isPlaying()) {
+              setTimeout(()=>{
+                if (!queue.isPlaying()){
+                  clearInterval(interval);
+                  return;
+                }
+              },2000);
+            }
+            commandInteraction.editReply(queue.node.createProgressBar() ?? "finished");
           }, 1000);
         }
         break;
       case "next":
+        commandInteraction.deleteReply();
         queue.node.skip();
         break;
       case "disconnect":
+        commandInteraction.deleteReply();
         queue.connection?.disconnect();
         break;
     }
