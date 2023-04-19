@@ -87,7 +87,6 @@ client.on('interactionCreate', async interaction => {
   var autocompleteInteraction = interaction as AutocompleteInteraction;
   var commandInteraction = interaction as CommandInteraction;
   var url = autocompleteInteraction.options.getString('keyword') ?? 'not found';
-  if (url.match(/https:\/\//)) url = `"${url}"`;
   await commandInteraction.deferReply();
 
   const queue: GuildQueue = player.nodes.create(
@@ -172,7 +171,9 @@ client.on('interactionCreate', async interaction => {
       break;
     case 'list':
       let titles = getTrackNames(queue.tracks).join('\n');
-      commandInteraction.editReply('```' + titles + '```');
+      commandInteraction.editReply(
+        '再生リスト' + '\n' + '```' + titles + '```'
+      );
       break;
     case 'shuffle':
       queue.tracks.shuffle();
@@ -188,6 +189,7 @@ client.on('interactionCreate', async interaction => {
 client.login(process.env.TOKEN);
 
 function getTrackNames(tracks: Queue<Track>): string[] {
+  if (tracks.size === 0) return ['なし'];
   return tracks.map((track, index) => {
     let title = track.title.trim();
     return (
