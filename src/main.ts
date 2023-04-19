@@ -1,6 +1,6 @@
 import { REST, Routes, GatewayIntentBits, Client, Partials, Message, SlashCommandBuilder, AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import dotenv from 'dotenv';
-import { GuildQueue, Player, QueryType} from 'discord-player';
+import { GuildQueue, Player, QueryType, QueueRepeatMode} from 'discord-player';
 
 dotenv.config()
 
@@ -19,6 +19,9 @@ const commands = [
     new SlashCommandBuilder()
       .setName('disconnect')
       .setDescription('disconnect this voice channel'),
+    new SlashCommandBuilder()
+      .setName('repeat')
+      .setDescription('change repeatMode'),
 ].map(command => command.toJSON());
   
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
@@ -104,9 +107,10 @@ client.on('interactionCreate', async interaction => {
                 }
               },2000);
             }
-            commandInteraction.editReply(queue.currentTrack?.author + "\n"
-              + queue.currentTrack?.title + "\n"
-              + "<" + queue.currentTrack?.url + ">" + "\n"
+            commandInteraction.editReply("Author: " + queue.currentTrack?.author + "\n"
+              + "Title: " + queue.currentTrack?.title + "\n"
+              + "Url: "  + "<" + queue.currentTrack?.url + ">" + "\n"
+              + "RepeatMode: " + queue.node.queue.repeatMode.toString() + "\n"
               + queue.node.createProgressBar() ?? "finished"
             );
           }, 1000);
@@ -119,6 +123,15 @@ client.on('interactionCreate', async interaction => {
       case "disconnect":
         commandInteraction.deleteReply();
         queue.connection?.disconnect();
+        break;
+      case "repeat":
+        //commandInteraction.deleteReply();
+        console.log(queue.node.queue.repeatMode);
+        if(queue.node.queue.repeatMode == QueueRepeatMode.OFF){
+          queue.node.queue.setRepeatMode(QueueRepeatMode.QUEUE);
+        } else {
+          queue.node.queue.setRepeatMode(QueueRepeatMode.OFF);
+        }
         break;
     }
 })
