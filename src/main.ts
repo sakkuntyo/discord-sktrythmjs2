@@ -23,7 +23,7 @@ const commands = [
       .setName('repeat')
       .setDescription('change repeatMode'),
     new SlashCommandBuilder()
-      .setName('status')
+      .setName('list')
       .setDescription('show status'),
 ].map(command => command.toJSON());
   
@@ -136,7 +136,7 @@ client.on('interactionCreate', async interaction => {
           queue.node.queue.setRepeatMode(QueueRepeatMode.OFF);
         }
         break;
-      case "status":
+      case "list":
         let titles = queue.tracks.map((track, index) => {
           let title = track.title.trim();
           return (index + 1).toString().padStart(2, ' ') + ' : ' + title.substring(0, 18)
