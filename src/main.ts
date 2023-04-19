@@ -148,7 +148,7 @@ client.on('interactionCreate', async interaction => {
               'RepeatMode: ' +
               QueueRepeatMode[queue.node.queue.repeatMode] +
               '\n' +
-              queue.node.createProgressBar() ?? 'finished'
+              queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? 'finished'
           );
         }, 1000);
       }
