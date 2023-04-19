@@ -110,7 +110,7 @@ client.on('interactionCreate', async interaction => {
             commandInteraction.editReply("Author: " + queue.currentTrack?.author + "\n"
               + "Title: " + queue.currentTrack?.title + "\n"
               + "Url: "  + "<" + queue.currentTrack?.url + ">" + "\n"
-              + "RepeatMode: " + queue.node.queue.repeatMode.toString() + "\n"
+              + "RepeatMode: " + QueueRepeatMode[queue.node.queue.repeatMode] + "\n"
               + queue.node.createProgressBar() ?? "finished"
             );
           }, 1000);
