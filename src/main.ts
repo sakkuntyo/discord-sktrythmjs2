@@ -6,11 +6,11 @@ dotenv.config()
 
 const commands = [
     new SlashCommandBuilder()
-      .setName('rythm')
+      .setName('play')
       .setDescription('play music')
       .addStringOption(option =>
-        option.setName('url')
-        .setDescription('youtube url')
+        option.setName('keyword')
+        .setDescription('keyword or url')
         .setRequired(true)
       ),
     new SlashCommandBuilder()
