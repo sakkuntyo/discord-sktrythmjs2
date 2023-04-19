@@ -7,7 +7,9 @@
     "test": "ts-node src/main.ts",
     "start": "node build/main.js",
     "compile": "tsc -p .",
-    "compile-start": "npm run compile && npm run start"
+    "compile-start": "npm run compile && npm run start",
+    "pm2-start": "npm run compile && pm2 start build/main.js",
+    "pm2-restart": "npm run compile && pm2 restart all"
   },
   "keywords": [],
   "author": "",
