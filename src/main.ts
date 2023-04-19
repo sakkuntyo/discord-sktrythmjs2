@@ -98,7 +98,7 @@ client.on('interactionCreate', async interaction => {
           const interval = setInterval(() => {
             if (!queue.isPlaying()) {
               setTimeout(()=>{
-                if (!queue.isPlaying()){
+                if (queue.deleted){
                   clearInterval(interval);
                   setTimeout(()=>{
                     commandInteraction.editReply("finished")
@@ -122,6 +122,7 @@ client.on('interactionCreate', async interaction => {
         break;
       case "disconnect":
         commandInteraction.deleteReply();
+        queue.delete();
         queue.connection?.disconnect();
         break;
       case "repeat":
