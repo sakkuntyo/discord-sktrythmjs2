@@ -65,7 +65,7 @@ const player = new Player(client);
 client.on('interactionCreate', async interaction => {
     var autocompleteInteraction = interaction as AutocompleteInteraction;
     var commandInteraction = interaction as CommandInteraction;
-    var url = autocompleteInteraction.options.getString("url") ?? "not found";
+    var url = autocompleteInteraction.options.getString("keyword") ?? "not found";
     if(url.match(/https:\/\//)) url = `"${url}"`
     await commandInteraction.deferReply();
 
