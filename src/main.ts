@@ -6,7 +6,8 @@ import {
   Partials,
   SlashCommandBuilder,
   AutocompleteInteraction,
-  CommandInteraction
+  CommandInteraction,
+  EmbedBuilder
 } from 'discord.js';
 import dotenv from 'dotenv';
 import {
@@ -18,6 +19,8 @@ import {
 } from 'discord-player';
 
 import { Queue } from '@discord-player/utils';
+
+import { lyricsExtractor } from '@discord-player/extractor';
 
 dotenv.config();
 
@@ -40,7 +43,14 @@ const commands = [
     .setDescription('change repeatMode'),
   new SlashCommandBuilder().setName('list').setDescription('show list'),
   new SlashCommandBuilder().setName('shuffle').setDescription('shuffle list'),
-  new SlashCommandBuilder().setName('history').setDescription('show history')
+  new SlashCommandBuilder().setName('history').setDescription('show history'),
+  new SlashCommandBuilder().setName('lyric').setDescription('show lyric'),
+  new SlashCommandBuilder()
+    .setName('eval')
+    .setDescription('eval')
+    .addStringOption(option =>
+      option.setName('command').setDescription('command').setRequired(true)
+    )
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
@@ -84,7 +94,12 @@ const client = new Client({
 const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
-  var url = (interaction as AutocompleteInteraction).options.getString('keyword') ?? 'not found';
+  var url =
+    (interaction as AutocompleteInteraction).options.getString('keyword') ??
+    'not found';
+  var command =
+    (interaction as AutocompleteInteraction).options.getString('command') ??
+    'not found';
   await (interaction as CommandInteraction).deferReply();
 
   const queue: GuildQueue = player.nodes.create(
@@ -111,7 +126,9 @@ client.on('interactionCreate', async interaction => {
       queue.addTrack(track);
       if (!queue.isPlaying()) {
         try {
-          await queue.connect((interaction as AutocompleteInteraction).channelId);
+          await queue.connect(
+            (interaction as AutocompleteInteraction).channelId
+          );
         } catch (e) {
           console.log('ボイスチャンネルに参加できませんでした');
           console.log(e);
@@ -145,7 +162,12 @@ client.on('interactionCreate', async interaction => {
               'RepeatMode: ' +
               QueueRepeatMode[queue.repeatMode] +
               '\n' +
-              queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? '終了したかも'
+              queue.node
+                .createProgressBar()
+                ?.replace(/▬/, '')
+                .replace(/▬/, '')
+                .replace(/▬(?!.▬)/, '')
+                .replace(/▬(?!.▬)/, '') ?? '終了したかも'
           );
         }, 1000);
       }
@@ -153,6 +175,7 @@ client.on('interactionCreate', async interaction => {
     case 'next':
       (interaction as CommandInteraction).deleteReply();
       queue.node.skip();
+      queue.currentTrack;
       break;
     case 'disconnect':
       (interaction as CommandInteraction).deleteReply();
@@ -168,10 +191,24 @@ client.on('interactionCreate', async interaction => {
       }
       break;
     case 'list':
-      let titles = getTrackNames(queue.tracks).join('\n');
-      (interaction as CommandInteraction).editReply(
-        '再生リスト' + '\n' + '```' + titles + '```'
-      );
+      (interaction as CommandInteraction).editReply('再生リスト' + '\n');
+      let embades = queue.tracks.map((track, index) => {
+        return new EmbedBuilder()
+          .setTitle(track.title)
+          .setURL(track.url)
+          .setThumbnail(track.thumbnail)
+          .setDescription(track.title)
+          .setColor('Red');
+      });
+
+      embades.forEach(embad => {
+        interaction.channel!.send({ embeds: [embad] });
+      });
+
+      // let titles = getTrackNames(queue.tracks).join('\n');
+      // (interaction as CommandInteraction).editReply(
+      //   '再生リスト' + '\n' + '```' + titles + '```'
+      // );
       break;
     case 'shuffle':
       queue.tracks.shuffle();
@@ -179,7 +216,50 @@ client.on('interactionCreate', async interaction => {
       break;
     case 'history':
       let history = getTrackNames(queue.history.tracks).join('\n');
-      (interaction as CommandInteraction).editReply('再生履歴' + '\n' + '```' + history + '```');
+      (interaction as CommandInteraction).editReply(
+        '再生履歴' + '\n' + '```' + history + '```'
+      );
+      break;
+    case 'lyric':
+      const lyricsFinder = lyricsExtractor('token');
+
+      var lyrics = await lyricsFinder
+        .search('踊 ado japanese')
+        .catch(() => null);
+
+      lyrics = lyrics!;
+
+      const trimmedLyrics = lyrics.lyrics.substring(0, 1997);
+
+      (interaction as CommandInteraction).editReply('歌詞');
+
+      const embed = new EmbedBuilder()
+        .setTitle(lyrics.title)
+        .setURL(lyrics.url)
+        .setThumbnail(lyrics.thumbnail)
+        .setAuthor({
+          name: lyrics.artist.name,
+          iconURL: lyrics.artist.image,
+          url: lyrics.artist.url
+        })
+        .setDescription(
+          trimmedLyrics.length === 1997 ? `${trimmedLyrics}...` : trimmedLyrics
+        )
+        .setColor('Yellow');
+      interaction.channel!.send({ embeds: [embed] });
+      break;
+    case 'eval':
+      if ((interaction as CommandInteraction).user.id != 'id') {
+        (interaction as CommandInteraction).editReply('権限がありません');
+        break;
+      }
+      try {
+        eval(command);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        (interaction as CommandInteraction).editReply(command);
+      }
       break;
   }
 });
