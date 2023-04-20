@@ -33,13 +33,13 @@ const commands = [
     )
     .addStringOption(option =>
       option
-        .setName("type")
-        .setDescription("single or multi, default single")
+        .setName('type')
+        .setDescription('single or multi, default single')
         .setChoices(
-          { name: "single", value: "single" },
-          { name: "multi", value: "multi" },
+          { name: 'single', value: 'single' },
+          { name: 'multi', value: 'multi' }
         )
-  ),
+    ),
   new SlashCommandBuilder().setName('next').setDescription('play next track'),
   new SlashCommandBuilder()
     .setName('disconnect')
@@ -93,8 +93,12 @@ const client = new Client({
 const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
-  var url = (interaction as AutocompleteInteraction).options.getString('keyword') ?? 'not found';
-  var trackType = (interaction as AutocompleteInteraction).options.getString('type') ?? 'single';
+  var url =
+    (interaction as AutocompleteInteraction).options.getString('keyword') ??
+    'not found';
+  var trackType =
+    (interaction as AutocompleteInteraction).options.getString('type') ??
+    'single';
   await (interaction as CommandInteraction).deferReply();
 
   const queue: GuildQueue = player.nodes.create(
@@ -116,10 +120,7 @@ client.on('interactionCreate', async interaction => {
             ? QueryType.AUTO
             : QueryType.YOUTUBE_SEARCH
         })
-        .then(x => trackType == "single"
-          ? x.tracks[0]
-          : x.tracks
-        );
+        .then(x => (trackType == 'single' ? x.tracks[0] : x.tracks));
 
       queue.addTrack(track);
       (interaction as CommandInteraction).editReply('追加しました');
@@ -162,7 +163,12 @@ client.on('interactionCreate', async interaction => {
             'RepeatMode: ' +
             QueueRepeatMode[queue.repeatMode] +
             '\n' +
-            queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? '終了したかも'
+            queue.node
+              .createProgressBar()
+              ?.replace(/▬/, '')
+              .replace(/▬/, '')
+              .replace(/▬(?!.▬)/, '')
+              .replace(/▬(?!.▬)/, '') ?? '終了したかも'
         );
       }, 1000);
       break;
@@ -195,7 +201,9 @@ client.on('interactionCreate', async interaction => {
       break;
     case 'history':
       let history = getTrackNames(queue.history.tracks).join('\n');
-      (interaction as CommandInteraction).editReply('再生履歴' + '\n' + '```' + history + '```');
+      (interaction as CommandInteraction).editReply(
+        '再生履歴' + '\n' + '```' + history + '```'
+      );
       break;
   }
 });
