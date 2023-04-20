@@ -116,7 +116,8 @@ client.on('interactionCreate', async interaction => {
         .then(x => (trackType == 'single' ? x.tracks[0] : x.tracks));
 
       queue.addTrack(track);
-      interaction.editReply('追加しました');
+      interaction.editReply('----------------');
+      var seekchat = await interaction.channel?.send('開始中...' + '\n' + '----------------');
 
       if (queue.isPlaying()) {
         break;
@@ -135,13 +136,13 @@ client.on('interactionCreate', async interaction => {
             if (queue.deleted) {
               clearInterval(interval);
               setTimeout(() => {
-                interaction.editReply('終了しました');
+                seekchat?.edit('終了しました');
                 return;
               }, 2000);
             }
           }, 2000);
         }
-        interaction.editReply(
+        seekchat?.edit(
           'Author: ' +
             queue.currentTrack?.author +
             '\n' +
@@ -161,7 +162,9 @@ client.on('interactionCreate', async interaction => {
               ?.replace(/▬/, '')
               .replace(/▬/, '')
               .replace(/▬(?!.▬)/, '')
-              .replace(/▬(?!.▬)/, '') ?? '終了したかも'
+              .replace(/▬(?!.▬)/, '') +
+            '\n' +
+            '----------------' ?? "終了したかも"
         );
       }, 1000);
       break;
