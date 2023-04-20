@@ -9,6 +9,7 @@
 
 ## 依存
 - discord.js 14.9
+- discord-player 6.1.1
 
 ## 使い方
 
