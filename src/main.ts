@@ -145,7 +145,7 @@ client.on('interactionCreate', async interaction => {
               '>' +
               '\n' +
               'RepeatMode: ' +
-              QueueRepeatMode[queue.node.queue.repeatMode] +
+              QueueRepeatMode[queue.repeatMode] +
               '\n' +
               queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? 'finished'
           );
@@ -163,10 +163,10 @@ client.on('interactionCreate', async interaction => {
       break;
     case 'repeat':
       commandInteraction.deleteReply();
-      if (queue.node.queue.repeatMode == QueueRepeatMode.OFF) {
-        queue.node.queue.setRepeatMode(QueueRepeatMode.QUEUE);
+      if (queue.repeatMode == QueueRepeatMode.OFF) {
+        queue.setRepeatMode(QueueRepeatMode.QUEUE);
       } else {
-        queue.node.queue.setRepeatMode(QueueRepeatMode.OFF);
+        queue.setRepeatMode(QueueRepeatMode.OFF);
       }
       break;
     case 'list':
