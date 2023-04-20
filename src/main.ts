@@ -4,9 +4,7 @@ import {
   GatewayIntentBits,
   Client,
   Partials,
-  SlashCommandBuilder,
-  AutocompleteInteraction,
-  CommandInteraction
+  SlashCommandBuilder
 } from 'discord.js';
 import dotenv from 'dotenv';
 import {
@@ -93,25 +91,20 @@ const client = new Client({
 const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
-  var url =
-    (interaction as AutocompleteInteraction).options.getString('keyword') ??
-    'not found';
-  var trackType =
-    (interaction as AutocompleteInteraction).options.getString('type') ??
-    'single';
-  await (interaction as CommandInteraction).deferReply();
+  if (!interaction.isChatInputCommand()) return;
 
-  const queue: GuildQueue = player.nodes.create(
-    (interaction as AutocompleteInteraction).guild!,
-    {
-      volume: 10,
-      metadata: {
-        channel: interaction.channel
-      }
+  var url = interaction.options.getString('keyword') ?? 'not found';
+  var trackType = interaction.options.getString('type') ?? 'single';
+  await interaction.deferReply();
+
+  const queue: GuildQueue = player.nodes.create(interaction.guild!, {
+    volume: 10,
+    metadata: {
+      channel: interaction.channel
     }
-  );
+  });
 
-  switch ((interaction as AutocompleteInteraction).commandName) {
+  switch (interaction.commandName) {
     case 'play':
       const track = await player
         .search(url, {
@@ -123,13 +116,13 @@ client.on('interactionCreate', async interaction => {
         .then(x => (trackType == 'single' ? x.tracks[0] : x.tracks));
 
       queue.addTrack(track);
-      (interaction as CommandInteraction).editReply('追加しました');
+      interaction.editReply('追加しました');
 
       if (queue.isPlaying()) {
         break;
       }
       try {
-        await queue.connect((interaction as AutocompleteInteraction).channelId);
+        await queue.connect(interaction.channelId);
       } catch (e) {
         console.log('ボイスチャンネルに参加できませんでした');
         console.log(e);
@@ -142,13 +135,13 @@ client.on('interactionCreate', async interaction => {
             if (queue.deleted) {
               clearInterval(interval);
               setTimeout(() => {
-                (interaction as CommandInteraction).editReply('終了しました');
+                interaction.editReply('終了しました');
                 return;
               }, 2000);
             }
           }, 2000);
         }
-        (interaction as CommandInteraction).editReply(
+        interaction.editReply(
           'Author: ' +
             queue.currentTrack?.author +
             '\n' +
@@ -173,16 +166,16 @@ client.on('interactionCreate', async interaction => {
       }, 1000);
       break;
     case 'next':
-      (interaction as CommandInteraction).deleteReply();
+      interaction.deleteReply();
       queue.node.skip();
       break;
     case 'disconnect':
-      (interaction as CommandInteraction).deleteReply();
+      interaction.deleteReply();
       queue.delete();
       queue.connection?.disconnect();
       break;
     case 'repeat':
-      (interaction as CommandInteraction).deleteReply();
+      interaction.deleteReply();
       if (queue.repeatMode == QueueRepeatMode.OFF) {
         queue.setRepeatMode(QueueRepeatMode.QUEUE);
       } else {
@@ -191,19 +184,15 @@ client.on('interactionCreate', async interaction => {
       break;
     case 'list':
       let titles = getTrackNames(queue.tracks).join('\n');
-      (interaction as CommandInteraction).editReply(
-        '再生リスト' + '\n' + '```' + titles + '```'
-      );
+      interaction.editReply('再生リスト' + '\n' + '```' + titles + '```');
       break;
     case 'shuffle':
       queue.tracks.shuffle();
-      (interaction as CommandInteraction).editReply('シャッフルしました');
+      interaction.editReply('シャッフルしました');
       break;
     case 'history':
       let history = getTrackNames(queue.history.tracks).join('\n');
-      (interaction as CommandInteraction).editReply(
-        '再生履歴' + '\n' + '```' + history + '```'
-      );
+      interaction.editReply('再生履歴' + '\n' + '```' + history + '```');
       break;
   }
 });
