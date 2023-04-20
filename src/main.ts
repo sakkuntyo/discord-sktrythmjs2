@@ -124,7 +124,7 @@ client.on('interactionCreate', async interaction => {
               if (queue.deleted) {
                 clearInterval(interval);
                 setTimeout(() => {
-                  (interaction as CommandInteraction).editReply('finished');
+                  (interaction as CommandInteraction).editReply('終了しました');
                   return;
                 }, 2000);
               }
@@ -145,7 +145,7 @@ client.on('interactionCreate', async interaction => {
               'RepeatMode: ' +
               QueueRepeatMode[queue.repeatMode] +
               '\n' +
-              queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? 'finished'
+              queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? '終了したかも'
           );
         }, 1000);
       }
