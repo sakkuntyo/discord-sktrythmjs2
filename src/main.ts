@@ -84,13 +84,11 @@ const client = new Client({
 const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
-  var autocompleteInteraction = interaction as AutocompleteInteraction;
-  var commandInteraction = interaction as CommandInteraction;
-  var url = autocompleteInteraction.options.getString('keyword') ?? 'not found';
-  await commandInteraction.deferReply();
+  var url = (interaction as AutocompleteInteraction).options.getString('keyword') ?? 'not found';
+  await (interaction as CommandInteraction).deferReply();
 
   const queue: GuildQueue = player.nodes.create(
-    autocompleteInteraction.guild!,
+    (interaction as AutocompleteInteraction).guild!,
     {
       volume: 10,
       metadata: {
@@ -99,7 +97,7 @@ client.on('interactionCreate', async interaction => {
     }
   );
 
-  switch (autocompleteInteraction.commandName) {
+  switch ((interaction as AutocompleteInteraction).commandName) {
     case 'play':
       const track = await player
         .search(url, {
@@ -113,7 +111,7 @@ client.on('interactionCreate', async interaction => {
       queue.addTrack(track);
       if (!queue.isPlaying()) {
         try {
-          await queue.connect(autocompleteInteraction.channelId);
+          await queue.connect((interaction as AutocompleteInteraction).channelId);
         } catch (e) {
           console.log('ボイスチャンネルに参加できませんでした');
           console.log(e);
@@ -126,13 +124,13 @@ client.on('interactionCreate', async interaction => {
               if (queue.deleted) {
                 clearInterval(interval);
                 setTimeout(() => {
-                  commandInteraction.editReply('finished');
+                  (interaction as CommandInteraction).editReply('finished');
                   return;
                 }, 2000);
               }
             }, 2000);
           }
-          commandInteraction.editReply(
+          (interaction as CommandInteraction).editReply(
             'Author: ' +
               queue.currentTrack?.author +
               '\n' +
@@ -153,16 +151,16 @@ client.on('interactionCreate', async interaction => {
       }
       break;
     case 'next':
-      commandInteraction.deleteReply();
+      (interaction as CommandInteraction).deleteReply();
       queue.node.skip();
       break;
     case 'disconnect':
-      commandInteraction.deleteReply();
+      (interaction as CommandInteraction).deleteReply();
       queue.delete();
       queue.connection?.disconnect();
       break;
     case 'repeat':
-      commandInteraction.deleteReply();
+      (interaction as CommandInteraction).deleteReply();
       if (queue.repeatMode == QueueRepeatMode.OFF) {
         queue.setRepeatMode(QueueRepeatMode.QUEUE);
       } else {
@@ -171,17 +169,17 @@ client.on('interactionCreate', async interaction => {
       break;
     case 'list':
       let titles = getTrackNames(queue.tracks).join('\n');
-      commandInteraction.editReply(
+      (interaction as CommandInteraction).editReply(
         '再生リスト' + '\n' + '```' + titles + '```'
       );
       break;
     case 'shuffle':
       queue.tracks.shuffle();
-      commandInteraction.editReply('シャッフルしました');
+      (interaction as CommandInteraction).editReply('シャッフルしました');
       break;
     case 'history':
       let history = getTrackNames(queue.history.tracks).join('\n');
-      commandInteraction.editReply('再生履歴' + '\n' + '```' + history + '```');
+      (interaction as CommandInteraction).editReply('再生履歴' + '\n' + '```' + history + '```');
       break;
   }
 });
