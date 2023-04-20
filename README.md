@@ -10,6 +10,44 @@
 ## 依存
 - discord.js 14.9
 
+## 使い方
+
+### 再生
+
+```
+/play keyword: (URL または キーワード)
+```
+
+### ボイスチャンネルから退出
+
+```
+/disconnect
+```
+
+### 現在のプレイリストを表示
+
+```
+/list
+```
+
+### プレイリストのシャッフル
+
+```
+/shuffle
+```
+
+### リピート切り替え
+
+```
+/repeat
+```
+
+### バージョン
+
+```
+/version
+```
+
 ## Discord Developer 側設定
 
 ### OAuth > Url Generator
