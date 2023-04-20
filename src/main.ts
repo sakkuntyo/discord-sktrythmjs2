@@ -30,7 +30,16 @@ const commands = [
         .setName('keyword')
         .setDescription('keyword or url')
         .setRequired(true)
-    ),
+    )
+    .addStringOption(option =>
+      option
+        .setName("type")
+        .setDescription("single or multi, default single")
+        .setChoices(
+          { name: "single", value: "single" },
+          { name: "multi", value: "multi" },
+        )
+  ),
   new SlashCommandBuilder().setName('next').setDescription('play next track'),
   new SlashCommandBuilder()
     .setName('disconnect')
@@ -85,6 +94,7 @@ const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
   var url = (interaction as AutocompleteInteraction).options.getString('keyword') ?? 'not found';
+  var trackType = (interaction as AutocompleteInteraction).options.getString('type') ?? 'single';
   await (interaction as CommandInteraction).deferReply();
 
   const queue: GuildQueue = player.nodes.create(
@@ -106,7 +116,10 @@ client.on('interactionCreate', async interaction => {
             ? QueryType.AUTO
             : QueryType.YOUTUBE_SEARCH
         })
-        .then(x => x.tracks);
+        .then(x => trackType == "single"
+          ? x.tracks[0]
+          : x.tracks
+        );
 
       queue.addTrack(track);
       (interaction as CommandInteraction).editReply('追加しました');
