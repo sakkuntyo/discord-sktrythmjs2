@@ -109,46 +109,49 @@ client.on('interactionCreate', async interaction => {
         .then(x => x.tracks);
 
       queue.addTrack(track);
-      if (!queue.isPlaying()) {
-        try {
-          await queue.connect((interaction as AutocompleteInteraction).channelId);
-        } catch (e) {
-          console.log('ボイスチャンネルに参加できませんでした');
-          console.log(e);
-        }
-        await queue.node.play();
+      (interaction as CommandInteraction).editReply('追加しました');
 
-        const interval = setInterval(() => {
-          if (!queue.isPlaying()) {
-            setTimeout(() => {
-              if (queue.deleted) {
-                clearInterval(interval);
-                setTimeout(() => {
-                  (interaction as CommandInteraction).editReply('終了しました');
-                  return;
-                }, 2000);
-              }
-            }, 2000);
-          }
-          (interaction as CommandInteraction).editReply(
-            'Author: ' +
-              queue.currentTrack?.author +
-              '\n' +
-              'Title: ' +
-              queue.currentTrack?.title +
-              '\n' +
-              'Url: ' +
-              '<' +
-              queue.currentTrack?.url +
-              '>' +
-              '\n' +
-              'RepeatMode: ' +
-              QueueRepeatMode[queue.repeatMode] +
-              '\n' +
-              queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? '終了したかも'
-          );
-        }, 1000);
+      if (queue.isPlaying()) {
+        break;
       }
+      try {
+        await queue.connect((interaction as AutocompleteInteraction).channelId);
+      } catch (e) {
+        console.log('ボイスチャンネルに参加できませんでした');
+        console.log(e);
+      }
+      await queue.node.play();
+
+      const interval = setInterval(() => {
+        if (!queue.isPlaying()) {
+          setTimeout(() => {
+            if (queue.deleted) {
+              clearInterval(interval);
+              setTimeout(() => {
+                (interaction as CommandInteraction).editReply('終了しました');
+                return;
+              }, 2000);
+            }
+          }, 2000);
+        }
+        (interaction as CommandInteraction).editReply(
+          'Author: ' +
+            queue.currentTrack?.author +
+            '\n' +
+            'Title: ' +
+            queue.currentTrack?.title +
+            '\n' +
+            'Url: ' +
+            '<' +
+            queue.currentTrack?.url +
+            '>' +
+            '\n' +
+            'RepeatMode: ' +
+            QueueRepeatMode[queue.repeatMode] +
+            '\n' +
+            queue.node.createProgressBar()?.replace(/▬/,'').replace(/▬/,'').replace(/▬(?!.▬)/,'').replace(/▬(?!.▬)/,'') ?? '終了したかも'
+        );
+      }, 1000);
       break;
     case 'next':
       (interaction as CommandInteraction).deleteReply();
