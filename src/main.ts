@@ -116,12 +116,13 @@ client.on('interactionCreate', async interaction => {
         .then(x => (trackType == 'single' ? x.tracks[0] : x.tracks));
 
       queue.addTrack(track);
+      if (queue.isPlaying()) {
+        interaction.editReply('追加しました');
+        break;
+      }
       interaction.editReply('----------------');
       var seekchat = await interaction.channel?.send('開始中...' + '\n' + '----------------');
 
-      if (queue.isPlaying()) {
-        break;
-      }
       try {
         await queue.connect(interaction.channelId);
       } catch (e) {
