@@ -4,7 +4,10 @@ import {
   GatewayIntentBits,
   Client,
   Partials,
-  SlashCommandBuilder
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle
 } from 'discord.js';
 import dotenv from 'dotenv';
 import {
@@ -121,7 +124,9 @@ client.on('interactionCreate', async interaction => {
         break;
       }
       interaction.editReply('----------------');
-      var seekchat = await interaction.channel?.send('開始中...' + '\n' + '----------------');
+      var seekchat = await interaction.channel?.send(
+        '開始中...' + '\n' + '----------------'
+      );
 
       try {
         await queue.connect(interaction.channelId);
@@ -143,6 +148,7 @@ client.on('interactionCreate', async interaction => {
             }
           }, 2000);
         }
+        let titles = getTrackNames(queue.tracks).join('\n');
         seekchat?.edit(
           'Author: ' +
             queue.currentTrack?.author +
@@ -158,16 +164,36 @@ client.on('interactionCreate', async interaction => {
             'RepeatMode: ' +
             QueueRepeatMode[queue.repeatMode] +
             '\n' +
-            queue.node
+            (queue.node
               .createProgressBar()
               ?.replace(/▬/, '')
               .replace(/▬/, '')
               .replace(/▬(?!.▬)/, '')
               .replace(/▬(?!.▬)/, '') +
+              '\n' +
+              '----------------' ?? '終了したかも') +
             '\n' +
-            '----------------' ?? "終了したかも"
+            '再生リスト' +
+            '\n' +
+            '```' +
+            titles +
+            '```'
         );
       }, 1000);
+      let action = new ActionRowBuilder<ButtonBuilder>().setComponents([
+        new ButtonBuilder()
+          .setCustomId('back')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('⏮'),
+
+        new ButtonBuilder()
+          .setCustomId('skip')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('⏭')
+      ]);
+      interaction.channel?.send({
+        components: [action]
+      });
       break;
     case 'next':
       interaction.deleteReply();
@@ -197,6 +223,31 @@ client.on('interactionCreate', async interaction => {
     case 'history':
       let history = getTrackNames(queue.history.tracks).join('\n');
       interaction.editReply('再生履歴' + '\n' + '```' + history + '```');
+      break;
+  }
+});
+
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isButton()) return;
+
+  const queue: GuildQueue = player.nodes.create(interaction.guild!, {
+    volume: 10,
+    metadata: {
+      channel: interaction.channel
+    }
+  });
+
+  switch (interaction.customId) {
+    case 'skip':
+      console.log(queue);
+      await interaction.deferReply();
+      interaction.deleteReply();
+      queue.node.skip();
+      break;
+    case 'back':
+      await interaction.deferReply();
+      interaction.deleteReply();
+      queue.history.back();
       break;
   }
 });
