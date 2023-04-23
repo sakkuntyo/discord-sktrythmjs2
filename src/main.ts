@@ -18,6 +18,17 @@ import {
   Track
 } from 'discord-player';
 
+import * as fs from 'fs' // 読み込む
+const appname = JSON.parse(
+  fs.readFileSync("./package.json", "utf8")
+).name;
+const homepage = JSON.parse(
+  fs.readFileSync("./package.json", "utf8")
+).homepage;
+const version = JSON.parse(
+  fs.readFileSync("./package.json", "utf8")
+).version;
+
 import { Queue } from '@discord-player/utils';
 
 dotenv.config();
@@ -50,7 +61,8 @@ const commands = [
     .setDescription('change repeatMode'),
   new SlashCommandBuilder().setName('list').setDescription('show list'),
   new SlashCommandBuilder().setName('shuffle').setDescription('shuffle list'),
-  new SlashCommandBuilder().setName('history').setDescription('show history')
+  new SlashCommandBuilder().setName('history').setDescription('show history'),
+  new SlashCommandBuilder().setName('version').setDescription('show version'),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN!);
@@ -226,6 +238,9 @@ client.on('interactionCreate', async interaction => {
     case 'history':
       let history = getTrackNames(queue.history.tracks).join('\n');
       interaction.editReply('再生履歴' + '\n' + '```' + history + '```');
+      break;
+    case 'version':
+      interaction.editReply(`name: ${appname}\nversion: ${version}\n${homepage}`);
       break;
   }
 });

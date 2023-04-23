@@ -1,5 +1,5 @@
 {
-  "name": "rythm",
+  "name": "discord-sktrythm2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -37,5 +37,6 @@
     "play-dl": "^1.9.6",
     "prettier": "^2.8.7",
     "ytdl-core": "^4.11.4"
-  }
+  },
+  "homepage": "https://github.com/sakkuntyo/discord-sktrythmjs2"
 }
