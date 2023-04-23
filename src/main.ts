@@ -159,6 +159,10 @@ client.on('interactionCreate', async interaction => {
           .setStyle(ButtonStyle.Primary)
           .setEmoji('🔁'),
         new ButtonBuilder()
+          .setCustomId('shuffle')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('🔀'),
+        new ButtonBuilder()
           .setCustomId('skip')
           .setStyle(ButtonStyle.Primary)
           .setEmoji('⏭')
@@ -249,6 +253,7 @@ client.on('interactionCreate', async interaction => {
 
 client.on('interactionCreate', async interaction => {
   if (!interaction.isButton()) return;
+  await interaction.deferReply();
 
   const queue: GuildQueue = player.nodes.create(interaction.guild!, {
     volume: 10,
@@ -260,12 +265,10 @@ client.on('interactionCreate', async interaction => {
   switch (interaction.customId) {
     case 'skip':
       //console.log(queue);
-      await interaction.deferReply();
       interaction.deleteReply();
       queue.node.skip();
       break;
     case 'repeat':
-      await interaction.deferReply();
       interaction.deleteReply();
       if (queue.repeatMode == QueueRepeatMode.OFF) {
         queue.setRepeatMode(QueueRepeatMode.QUEUE);
@@ -273,11 +276,17 @@ client.on('interactionCreate', async interaction => {
         queue.setRepeatMode(QueueRepeatMode.OFF);
       }
       break;
+    case 'shuffle':
+      //console.log(queue);
+      interaction.deleteReply();
+      queue.tracks.shuffle();
+      break;
     case 'back':
-      await interaction.deferReply();
       interaction.deleteReply();
       queue.history.back();
       break;
+    default:
+      interaction.editReply('不明なコマンドです');
   }
 });
 
