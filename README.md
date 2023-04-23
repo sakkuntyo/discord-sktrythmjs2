@@ -18,7 +18,7 @@
 ### 再生
 
 ```
-/play keyword: (URL または キーワード)
+/play keyword: (URL または キーワード) type:single または multi
 ```
 
 ※ ボイスチャンネルのチャット欄で
