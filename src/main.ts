@@ -286,7 +286,9 @@ client.login(process.env.TOKEN);
 function getTrackNames(tracks: Queue<Track>): string[] {
   if (tracks.size === 0) return ['なし'];
   return tracks.map((track, index) => {
-    let title = track.title.trim();
+    let authorRegExp = new RegExp('(【|\\[|\\\s)*?' + track.author + '(】|\\\s])');
+    //console.log(authorRegExp)
+    let title = track.title.replace(authorRegExp, '').trim();
     return (
       (index + 1).toString().padStart(2, ' ') + ' : ' + title.substring(0, 18)
     );
