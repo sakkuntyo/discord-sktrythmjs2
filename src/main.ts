@@ -176,7 +176,7 @@ client.on('interactionCreate', async interaction => {
             '再生リスト' +
             '\n' +
             '```' +
-            titles +
+            getTrackNames(queue.tracks).slice(0,10).join('\n') +
             '```'
         );
       }, 1000);
@@ -239,7 +239,7 @@ client.on('interactionCreate', async interaction => {
 
   switch (interaction.customId) {
     case 'skip':
-      console.log(queue);
+      //console.log(queue);
       await interaction.deferReply();
       interaction.deleteReply();
       queue.node.skip();
