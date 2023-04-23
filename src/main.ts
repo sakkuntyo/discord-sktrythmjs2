@@ -142,7 +142,7 @@ client.on('interactionCreate', async interaction => {
             if (queue.deleted) {
               clearInterval(interval);
               setTimeout(() => {
-                seekchat?.edit('終了しました');
+                seekchat?.edit('終了しました' + '\n' + '----------------');
                 return;
               }, 2000);
             }
