@@ -185,7 +185,10 @@ client.on('interactionCreate', async interaction => {
           .setCustomId('back')
           .setStyle(ButtonStyle.Primary)
           .setEmoji('⏮'),
-
+        new ButtonBuilder()
+          .setCustomId('repeat')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('🔁'),
         new ButtonBuilder()
           .setCustomId('skip')
           .setStyle(ButtonStyle.Primary)
@@ -243,6 +246,15 @@ client.on('interactionCreate', async interaction => {
       await interaction.deferReply();
       interaction.deleteReply();
       queue.node.skip();
+      break;
+    case 'repeat':
+      await interaction.deferReply();
+      interaction.deleteReply();
+      if (queue.repeatMode == QueueRepeatMode.OFF) {
+        queue.setRepeatMode(QueueRepeatMode.QUEUE);
+      } else {
+        queue.setRepeatMode(QueueRepeatMode.OFF);
+      }
       break;
     case 'back':
       await interaction.deferReply();
