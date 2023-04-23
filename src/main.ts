@@ -18,7 +18,8 @@ import {
   Track
 } from 'discord-player';
 
-import * as fs from 'fs' // 読み込む
+// アプリケーション情報
+import * as fs from 'fs'
 const appname = JSON.parse(
   fs.readFileSync("./package.json", "utf8")
 ).name;
@@ -148,6 +149,24 @@ client.on('interactionCreate', async interaction => {
       }
       await queue.node.play();
 
+      let action = new ActionRowBuilder<ButtonBuilder>().setComponents([
+        new ButtonBuilder()
+          .setCustomId('back')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('⏮'),
+        new ButtonBuilder()
+          .setCustomId('repeat')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('🔁'),
+        new ButtonBuilder()
+          .setCustomId('skip')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('⏭')
+      ]);
+      let buttonchat = await interaction.channel?.send({
+        components: [action]
+      });
+
       const interval = setInterval(() => {
         if (!queue.isPlaying()) {
           setTimeout(() => {
@@ -155,12 +174,12 @@ client.on('interactionCreate', async interaction => {
               clearInterval(interval);
               setTimeout(() => {
                 seekchat?.edit('終了しました' + '\n' + '----------------');
+                buttonchat?.delete(); //動作するがなぜかエラーが出る DiscordAPIError[10008]: Unknown Message
                 return;
               }, 2000);
             }
           }, 2000);
         }
-        let titles = getTrackNames(queue.tracks).join('\n');
         seekchat?.edit(
           'Author: ' +
             queue.currentTrack?.author +
@@ -192,23 +211,6 @@ client.on('interactionCreate', async interaction => {
             '```'
         );
       }, 1000);
-      let action = new ActionRowBuilder<ButtonBuilder>().setComponents([
-        new ButtonBuilder()
-          .setCustomId('back')
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji('⏮'),
-        new ButtonBuilder()
-          .setCustomId('repeat')
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji('🔁'),
-        new ButtonBuilder()
-          .setCustomId('skip')
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji('⏭')
-      ]);
-      interaction.channel?.send({
-        components: [action]
-      });
       break;
     case 'next':
       interaction.deleteReply();
