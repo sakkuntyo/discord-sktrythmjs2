@@ -1,6 +1,6 @@
 {
   "name": "discord-sktrythm2",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -28,7 +28,7 @@
   "dependencies": {
     "@discord-player/extractor": "^4.1.2",
     "@discordjs/opus": "^0.9.0",
-    "@distube/ytdl-core": "^4.11.8",
+    "@distube/ytdl-core": "^4.13.0",
     "discord-player": "^6.1.1",
     "discord.js": "^14.9.0",
     "dotenv": "^16.0.3",
@@ -36,7 +36,7 @@
     "opusscript": "^0.0.8",
     "play-dl": "^1.9.6",
     "prettier": "^2.8.7",
-    "ytdl-core": "^4.11.4"
+    "ytdl-core": "^4.11.5"
   },
   "homepage": "https://github.com/sakkuntyo/discord-sktrythmjs2"
 }
