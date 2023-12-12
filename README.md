@@ -57,4 +57,8 @@
 
 ### OAuth > Url Generator
 スラッシュコマンドしか見ないので Read 等は不要
+
+- bot
+- application.commands (これだけだとだめみたい)
+
 ![image](https://user-images.githubusercontent.com/20591351/233255560-ef8e1cd1-0fa3-4762-9b2f-0fd8f57c86c5.png)
