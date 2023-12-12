@@ -7,7 +7,10 @@ import {
   SlashCommandBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
 } from 'discord.js';
 import dotenv from 'dotenv';
 import {
@@ -104,14 +107,40 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel]
 });
 
+export class Debugger {
+    constructor(public client: Client) {
+        console.log(client instanceof Client); // logs false
+    }
+}
+
 const player = new Player(client);
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+  if (!interaction.isChatInputCommand() && !(interaction.isButton() && interaction.customId == "add") && !interaction.isModalSubmit()) return;
 
-  var url = interaction.options.getString('keyword') ?? 'not found';
-  var trackType = interaction.options.getString('type') ?? 'single';
-  await interaction.deferReply();
+  var CommandName = ''
+  var url = 'not found'
+  var trackType = 'single';
+  if (interaction.isChatInputCommand()) {
+      await interaction.deferReply();
+      CommandName = interaction.commandName;
+      url = interaction.options.getString('keyword') ?? 'not found';
+      trackType = interaction.options.getString('type') ?? 'single';
+  }
+  if (interaction.isButton()) {
+      const modal = new ModalBuilder()
+        .setCustomId('addmodal')
+        .setTitle('addmodal');
+      const keywordInput = new TextInputBuilder()
+        .setCustomId('keywordInput')
+        .setLabel("追加したい曲のキーワードかURLを入力してください。")
+        .setStyle(TextInputStyle.Paragraph);
+      const firstActionRow = new ActionRowBuilder<TextInputBuilder>
+      firstActionRow.addComponents(keywordInput);
+      modal.addComponents(firstActionRow);
+      await interaction.showModal(modal);
+      return;
+  }
 
   const queue: GuildQueue = player.nodes.create(interaction.guild!, {
     volume: 10,
@@ -120,7 +149,18 @@ client.on('interactionCreate', async interaction => {
     }
   });
 
-  switch (interaction.commandName) {
+  if (interaction.isModalSubmit()) {
+      await interaction.deferReply();
+      CommandName = 'play';
+      url = interaction.fields.getTextInputValue('keywordInput');
+      trackType = 'single';
+      if (!queue.isPlaying()) {
+        interaction.editReply("追加ボタンは接続中のみ機能します。 /play コマンドを使用してください。");
+        return;
+      }
+  }
+
+  switch (CommandName) {
     case 'play':
       const track = await player
         .search(url, {
@@ -142,7 +182,9 @@ client.on('interactionCreate', async interaction => {
       );
 
       try {
-        await queue.connect(interaction.channelId);
+        if (interaction.isChatInputCommand()) {
+          await queue.connect(interaction.channelId);
+        }
       } catch (e) {
         console.log('ボイスチャンネルに参加できませんでした');
         console.log(e);
@@ -150,10 +192,10 @@ client.on('interactionCreate', async interaction => {
       await queue.node.play();
 
       let action = new ActionRowBuilder<ButtonBuilder>().setComponents([
-        new ButtonBuilder()
-          .setCustomId('back')
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji('⏮'),
+        //new ButtonBuilder()
+        //  .setCustomId('back')
+        //  .setStyle(ButtonStyle.Primary)
+        //  .setEmoji('⏮'),
         new ButtonBuilder()
           .setCustomId('repeat')
           .setStyle(ButtonStyle.Primary)
@@ -165,7 +207,11 @@ client.on('interactionCreate', async interaction => {
         new ButtonBuilder()
           .setCustomId('skip')
           .setStyle(ButtonStyle.Primary)
-          .setEmoji('⏭')
+          .setEmoji('⏭'),
+        new ButtonBuilder()
+          .setCustomId('add')
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji('➕')
       ]);
       let buttonchat = await interaction.channel?.send({
         components: [action]
@@ -214,7 +260,7 @@ client.on('interactionCreate', async interaction => {
             getTrackNames(queue.tracks).slice(0,10).join('\n') +
             '```'
         );
-      }, 1000);
+      }, 3000);
       break;
     case 'next':
       interaction.deleteReply();
@@ -252,8 +298,9 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isButton()) return;
-  await interaction.deferReply();
+  if (!interaction.isButton() || interaction.customId == 'add') return;
+
+	await interaction.deferReply();
 
   const queue: GuildQueue = player.nodes.create(interaction.guild!, {
     volume: 10,
@@ -291,6 +338,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(process.env.TOKEN);
+//client.on('debug',console.log); // debug 用
 
 function getTrackNames(tracks: Queue<Track>): string[] {
   if (tracks.size === 0) return ['なし'];
