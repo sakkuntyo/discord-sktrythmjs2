@@ -10,7 +10,7 @@ import {
   ButtonStyle,
   ModalBuilder,
   TextInputBuilder,
-  TextInputStyle
+  TextInputStyle,
 } from 'discord.js';
 import dotenv from 'dotenv';
 import {
@@ -130,7 +130,7 @@ client.on('interactionCreate', async interaction => {
   if (interaction.isButton()) {
       const modal = new ModalBuilder()
         .setCustomId('addmodal')
-        .setTitle('addmodal');
+        .setTitle('曲の追加');
       const keywordInput = new TextInputBuilder()
         .setCustomId('keywordInput')
         .setLabel("追加したい曲のキーワードかURLを入力してください。")
