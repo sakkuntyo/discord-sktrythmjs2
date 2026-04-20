@@ -50,7 +50,7 @@ const commands = [
     .addStringOption(option =>
       option
         .setName('type')
-        .setDescription('single or multi, default single')
+        .setDescription('single or multi, default multi')
         .setChoices(
           { name: 'single', value: 'single' },
           { name: 'multi', value: 'multi' }
@@ -107,6 +107,14 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel]
 });
 
+client.on('error', error => {
+  console.error('Discord client error:', error);
+});
+
+process.on('unhandledRejection', error => {
+  console.error('Unhandled promise rejection:', error);
+});
+
 export class Debugger {
     constructor(public client: Client) {
         console.log(client instanceof Client); // logs false
@@ -115,17 +123,54 @@ export class Debugger {
 
 const player = new Player(client);
 
+let youtubeiReady: Promise<void> | null = null;
+
+function ensureYouTubeiExtractor(): Promise<void> {
+  youtubeiReady ??= registerYouTubeiExtractor();
+  return youtubeiReady;
+}
+
+async function registerYouTubeiExtractor(): Promise<void> {
+  const importYoutubei = new Function(
+    'return import("discord-player-youtubei")'
+  ) as () => Promise<typeof import('discord-player-youtubei')>;
+  const { YoutubeiExtractor } = await importYoutubei();
+
+  await player.extractors.register(YoutubeiExtractor, {
+    disablePlayer: true,
+    useYoutubeDL: true,
+    dlUpdateInterval: 604800000,
+    logLevel: 'LOW',
+    streamOptions: {
+      useClient: 'ANDROID',
+      highWaterMark: 1 << 25
+    }
+  });
+}
+
+player.events.on('error', (_queue, error) => {
+  console.error('Discord Player queue error:', error);
+});
+
+player.events.on('playerError', (_queue, error, track) => {
+  console.error('Discord Player stream error:', {
+    track: track?.title,
+    url: track?.url,
+    error
+  });
+});
+
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand() && !(interaction.isButton() && interaction.customId == "add") && !interaction.isModalSubmit()) return;
 
   var CommandName = ''
   var url = 'not found'
-  var trackType = 'single';
+  var trackType = 'multi';
   if (interaction.isChatInputCommand()) {
       await interaction.deferReply();
       CommandName = interaction.commandName;
       url = interaction.options.getString('keyword') ?? 'not found';
-      trackType = interaction.options.getString('type') ?? 'single';
+      trackType = interaction.options.getString('type') ?? 'multi';
   }
   if (interaction.isButton()) {
       const modal = new ModalBuilder()
@@ -162,14 +207,38 @@ client.on('interactionCreate', async interaction => {
 
   switch (CommandName) {
     case 'play':
-      const track = await player
-        .search(url, {
+      try {
+        await ensureYouTubeiExtractor();
+      } catch (error) {
+        console.error('Failed to register YouTubei extractor:', error);
+        interaction.editReply('YouTube 再生の初期化に失敗しました。ログを確認してください。');
+        break;
+      }
+
+      const member =
+        interaction.guild?.members.cache.get(interaction.user.id) ??
+        (await interaction.guild?.members
+          .fetch(interaction.user.id)
+          .catch(() => undefined));
+      const voiceChannel = member?.voice.channel;
+
+      if (!queue.isPlaying() && !voiceChannel) {
+        interaction.editReply('先にボイスチャンネルに入ってから /play してください');
+        break;
+      }
+
+      const searchResult = await player.search(url, {
           requestedBy: interaction.user,
           searchEngine: url.match(/https:\/\//)
             ? QueryType.AUTO
             : QueryType.YOUTUBE_SEARCH
-        })
-        .then(x => (trackType == 'single' ? x.tracks[0] : x.tracks));
+        });
+      const track = trackType == 'single' ? searchResult.tracks[0] : searchResult.tracks;
+
+      if (!track || (Array.isArray(track) && track.length === 0)) {
+        interaction.editReply('曲が見つかりませんでした');
+        break;
+      }
 
       queue.addTrack(track);
       if (queue.isPlaying()) {
@@ -182,14 +251,24 @@ client.on('interactionCreate', async interaction => {
       );
 
       try {
-        if (interaction.isChatInputCommand()) {
-          await queue.connect(interaction.channelId);
+        if (!queue.connection && voiceChannel) {
+          await queue.connect(voiceChannel);
         }
       } catch (e) {
         console.log('ボイスチャンネルに参加できませんでした');
         console.log(e);
+        interaction.editReply('ボイスチャンネルに参加できませんでした');
+        queue.delete();
+        break;
       }
-      await queue.node.play();
+      try {
+        await queue.node.play();
+      } catch (e) {
+        console.error('Failed to start playback:', e);
+        interaction.editReply('再生できませんでした。別のURLまたはキーワードで試してください。');
+        queue.delete();
+        break;
+      }
 
       let action = new ActionRowBuilder<ButtonBuilder>().setComponents([
         //new ButtonBuilder()
@@ -243,7 +322,7 @@ client.on('interactionCreate', async interaction => {
             '>' +
             '\n' +
             'RepeatMode: ' +
-            QueueRepeatMode[queue.repeatMode] +
+            getRepeatModeName(queue.repeatMode) +
             '\n' +
             (queue.node
               .createProgressBar()
@@ -252,7 +331,7 @@ client.on('interactionCreate', async interaction => {
               .replace(/▬(?!.▬)/, '')
               .replace(/▬(?!.▬)/, '') +
               '\n' +
-              '----------------' ?? '終了したかも') +
+              '----------------') +
             '\n' +
             '再生リスト' +
             '\n' +
@@ -339,6 +418,19 @@ client.on('interactionCreate', async interaction => {
 
 client.login(process.env.TOKEN);
 //client.on('debug',console.log); // debug 用
+
+function getRepeatModeName(mode: QueueRepeatMode): string {
+  switch (mode) {
+    case QueueRepeatMode.TRACK:
+      return 'TRACK';
+    case QueueRepeatMode.QUEUE:
+      return 'QUEUE';
+    case QueueRepeatMode.AUTOPLAY:
+      return 'AUTOPLAY';
+    default:
+      return 'OFF';
+  }
+}
 
 function getTrackNames(tracks: Queue<Track>): string[] {
   if (tracks.size === 0) return ['なし'];
