@@ -1,5 +1,7 @@
 # 音楽を再生してくれる Bot
 
+[AI README / Ubuntu deployment runbook](./ai-readme.md)
+
 [招待リンク](https://discord.com/api/oauth2/authorize?client_id=1097470836711100446&permissions=0&scope=bot%20applications.commands)
 
 ![Animation](https://user-images.githubusercontent.com/20591351/233257350-2023ecad-c982-433c-a943-93dbf10dc93b.gif)
