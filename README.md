@@ -7,13 +7,15 @@
 ![Animation](https://user-images.githubusercontent.com/20591351/233257350-2023ecad-c982-433c-a943-93dbf10dc93b.gif)
 
 ## 動作環境
-- nodejs 18.15
+- nodejs 20.18.1 以上
 - typescript 5.0.4
 - ts-node 10.9.1
 
 ## 依存
 - discord.js 14.9
-- discord-player 6.1.1
+- discord-player 7.2
+- discord-player-youtubei 2.0
+- yt-dlp (youtube-dl-exec)
 
 ## 使い方
 
@@ -23,6 +25,7 @@
 /play keyword: (URL または キーワード) type:single または multi
 ```
 
+※ type 未指定時は multi
 ※ ボイスチャンネルのチャット欄で
 
 ### ボイスチャンネルから退出
