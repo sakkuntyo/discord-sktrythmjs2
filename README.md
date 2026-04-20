@@ -59,6 +59,8 @@
 /version
 ```
 
+# 開発者向け
+
 ## Discord Developer 側設定
 
 ### OAuth > Url Generator
