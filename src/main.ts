@@ -14,11 +14,13 @@ import {
 } from 'discord.js';
 import dotenv from 'dotenv';
 import {
+  AudioFilters,
   GuildQueue,
   Player,
   QueryType,
   QueueRepeatMode,
-  Track
+  Track,
+  type FiltersName
 } from 'discord-player';
 
 // アプリケーション情報
@@ -55,6 +57,17 @@ const commands = [
           { name: 'single', value: 'single' },
           { name: 'multi', value: 'multi' }
         )
+    ),
+  new SlashCommandBuilder()
+    .setName('bass')
+    .setDescription('set bass boost for upcoming tracks')
+    .addIntegerOption(option =>
+      option
+        .setName('level')
+        .setDescription('1=off 2-10=stronger bass')
+        .setRequired(true)
+        .setMinValue(1)
+        .setMaxValue(10)
     ),
   new SlashCommandBuilder().setName('next').setDescription('play next track'),
   new SlashCommandBuilder()
@@ -122,6 +135,8 @@ export class Debugger {
 }
 
 const player = new Player(client);
+const guildBassLevels = new Map<string, number>();
+const customBassFilters = defineCustomBassFilters();
 
 let youtubeiReady: Promise<void> | null = null;
 
@@ -166,11 +181,13 @@ client.on('interactionCreate', async interaction => {
   var CommandName = ''
   var url = 'not found'
   var trackType = 'multi';
+  let bassLevel: number | null = null;
   if (interaction.isChatInputCommand()) {
       await interaction.deferReply();
       CommandName = interaction.commandName;
       url = interaction.options.getString('keyword') ?? 'not found';
       trackType = interaction.options.getString('type') ?? 'multi';
+      bassLevel = interaction.options.getInteger('level');
   }
   if (interaction.isButton()) {
       const modal = new ModalBuilder()
@@ -189,10 +206,12 @@ client.on('interactionCreate', async interaction => {
 
   const queue: GuildQueue = player.nodes.create(interaction.guild!, {
     volume: 10,
+    defaultFFmpegFilters: getBassFilters(getBassLevel(interaction.guildId)),
     metadata: {
       channel: interaction.channel
     }
   });
+  applyBassFilterDefaults(queue, interaction.guildId);
 
   if (interaction.isModalSubmit()) {
       await interaction.deferReply();
@@ -206,6 +225,20 @@ client.on('interactionCreate', async interaction => {
   }
 
   switch (CommandName) {
+    case 'bass':
+      if (!interaction.guildId || bassLevel === null) {
+        interaction.editReply('Bass level could not be updated.');
+        break;
+      }
+
+      guildBassLevels.set(interaction.guildId, bassLevel);
+      applyBassFilterDefaults(queue, interaction.guildId);
+      interaction.editReply(
+        `Bass filter is set to ${getBassLevelName(
+          bassLevel
+        )}. It will apply from the next track.`
+      );
+      break;
     case 'play':
       try {
         await ensureYouTubeiExtractor();
@@ -383,10 +416,12 @@ client.on('interactionCreate', async interaction => {
 
   const queue: GuildQueue = player.nodes.create(interaction.guild!, {
     volume: 10,
+    defaultFFmpegFilters: getBassFilters(getBassLevel(interaction.guildId)),
     metadata: {
       channel: interaction.channel
     }
   });
+  applyBassFilterDefaults(queue, interaction.guildId);
 
   switch (interaction.customId) {
     case 'skip':
@@ -430,6 +465,39 @@ function getRepeatModeName(mode: QueueRepeatMode): string {
     default:
       return 'OFF';
   }
+}
+
+function getBassLevel(guildId: string | null): number {
+  if (!guildId) return 1;
+  return guildBassLevels.get(guildId) ?? 1;
+}
+
+function getBassFilters(level: number): FiltersName[] {
+  if (level <= 1) return [];
+  const filterName = customBassFilters[level] ?? customBassFilters[10];
+  return filterName ? [filterName as FiltersName] : [];
+}
+
+function applyBassFilterDefaults(queue: GuildQueue, guildId: string | null): void {
+  queue.filters.ffmpeg.setDefaults(getBassFilters(getBassLevel(guildId)));
+}
+
+function getBassLevelName(level: number): string {
+  if (level <= 1) return 'off';
+  return `level ${level}`;
+}
+
+function defineCustomBassFilters(): Record<number, string> {
+  const filters: Record<number, string> = {};
+
+  for (let level = 2; level <= 10; level++) {
+    const gain = (level - 1) * 2;
+    const filterName = `bass_custom_${level}`;
+    AudioFilters.define(filterName, `bass=g=${gain}`);
+    filters[level] = filterName;
+  }
+
+  return filters;
 }
 
 function getTrackNames(tracks: Queue<Track>): string[] {
